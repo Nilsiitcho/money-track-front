@@ -6,6 +6,7 @@ import type {
   EntryCreatePayload,
   EntryRule,
   EntryUpdatePayload,
+  Grid,
   LoginResponse,
   Occurrence,
 } from "./types";
@@ -83,5 +84,11 @@ export async function deleteEntry(
 // ---- Dashboard ----
 export async function getDashboard(month: string): Promise<Dashboard> {
   const { data } = await api.get<Dashboard>("/api/dashboard", { params: { month } });
+  return data;
+}
+
+// ---- Relatorio (tabela pivo) ----
+export async function getGrid(from: string, months = 12): Promise<Grid> {
+  const { data } = await api.get<Grid>("/api/report/grid", { params: { from, months } });
   return data;
 }

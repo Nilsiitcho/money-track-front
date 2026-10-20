@@ -58,21 +58,23 @@ export function DashboardPage() {
       {data && (
         <Stack spacing={2}>
           <Grid container spacing={1.5}>
-            <Grid item xs={6}>
+            <Grid item xs={6} md={3}>
               <SummaryCard title="Receitas" value={data.totals.receitas} color={RECEITA_COLOR} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={6} md={3}>
               <SummaryCard title="Despesas" value={data.totals.despesas} color={DESPESA_COLOR} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={6} md={3}>
               <SummaryCard title="Saldo do mes" value={data.totals.saldo} color={saldoColor} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={6} md={3}>
               <SummaryCard title="Saldo acumulado" value={data.accumulated} color={accColor} />
             </Grid>
           </Grid>
 
-          <Card>
+          <Grid container spacing={2}>
+           <Grid item xs={12} md={6}>
+            <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="subtitle2" gutterBottom>
                 Evolucao do saldo
@@ -95,9 +97,10 @@ export function DashboardPage() {
                 </ResponsiveContainer>
               )}
             </CardContent>
-          </Card>
-
-          <Card>
+            </Card>
+           </Grid>
+           <Grid item xs={12} md={6}>
+            <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="subtitle2" gutterBottom>
                 Despesas por categoria
@@ -127,7 +130,9 @@ export function DashboardPage() {
                 </ResponsiveContainer>
               )}
             </CardContent>
-          </Card>
+            </Card>
+           </Grid>
+          </Grid>
         </Stack>
       )}
     </Box>

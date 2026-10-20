@@ -5,6 +5,7 @@ import { AppLayout } from "./components/AppLayout";
 import { DashboardPage } from "./pages/DashboardPage";
 import { EntriesPage } from "./pages/EntriesPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
+import { ReportPage } from "./pages/ReportPage";
 
 export function App() {
   return (
@@ -13,6 +14,7 @@ export function App() {
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/report" element={<ReportPage />} />
           <Route path="/entries" element={<EntriesPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
         </Route>

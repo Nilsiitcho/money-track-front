@@ -70,6 +70,22 @@ export interface Dashboard {
   byCategory: { categoryId: number; name: string; total: number }[];
 }
 
+export interface GridCategoryRow {
+  categoryId: number;
+  name: string;
+  values: number[];
+}
+
+export interface Grid {
+  months: string[];
+  receitas: GridCategoryRow[];
+  despesas: GridCategoryRow[];
+  totalReceitas: number[];
+  totalDespesas: number[];
+  saldo: number[];
+  accumulated: number[];
+}
+
 export interface ApiFieldError {
   field: string;
   message: string;
