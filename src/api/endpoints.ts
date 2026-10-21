@@ -88,7 +88,9 @@ export async function getDashboard(month: string): Promise<Dashboard> {
 }
 
 // ---- Relatorio (tabela pivo) ----
-export async function getGrid(from: string, months = 12): Promise<Grid> {
-  const { data } = await api.get<Grid>("/api/report/grid", { params: { from, months } });
+export async function getGrid(from: string, months = 12, exclude: number[] = []): Promise<Grid> {
+  const params: Record<string, string | number> = { from, months };
+  if (exclude.length > 0) params.exclude = exclude.join(",");
+  const { data } = await api.get<Grid>("/api/report/grid", { params });
   return data;
 }

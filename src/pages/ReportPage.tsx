@@ -2,10 +2,14 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Box, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Typography, IconButton, CircularProgress, Alert,
+  Typography, IconButton, CircularProgress, Alert, Button, Chip, Tooltip,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ChevronRightIcon2 from "@mui/icons-material/KeyboardArrowRight";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { getGrid } from "../api/endpoints";
 import { errorMessage } from "../api/client";
 import { currentMonth, formatCell, formatMonthShort, shiftMonth } from "../lib/format";
@@ -13,7 +17,7 @@ import { RECEITA_COLOR, DESPESA_COLOR } from "../theme";
 import type { GridCategoryRow } from "../api/types";
 
 const MONTHS = 12;
-const FIRST_COL = 132;
+const FIRST_COL = 160;
 const CELL_MIN = 78;
 
 // Celula da primeira coluna: fixa ao rolar horizontalmente
@@ -29,16 +33,37 @@ const stickyLeft = {
 
 export function ReportPage() {
   const [from, setFrom] = useState(currentMonth());
+  // Simulacao (apenas na sessao): ids de lancamentos ocultos e categorias expandidas.
+  const [hidden, setHidden] = useState<Set<number>>(new Set());
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+
+  const excluded = [...hidden].sort((a, b) => a - b);
   const { data, isLoading, error } = useQuery({
-    queryKey: ["grid", from, MONTHS],
-    queryFn: () => getGrid(from, MONTHS),
+    queryKey: ["grid", from, MONTHS, excluded.join(",")],
+    queryFn: () => getGrid(from, MONTHS, excluded),
   });
 
   const months = data?.months ?? [];
   const rangeLabel =
     months.length > 0 ? `${formatMonthShort(months[0])} – ${formatMonthShort(months[months.length - 1])}` : "";
 
-  function numCell(value: number, key: number, color?: string, bold?: boolean) {
+  function toggleHidden(entryId: number) {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      next.has(entryId) ? next.delete(entryId) : next.add(entryId);
+      return next;
+    });
+  }
+
+  function toggleExpanded(categoryId: number) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(categoryId) ? next.delete(categoryId) : next.add(categoryId);
+      return next;
+    });
+  }
+
+  function numCell(value: number, key: number, color?: string, bold?: boolean, muted?: boolean) {
     const negative = value < 0;
     return (
       <TableCell
@@ -48,12 +73,45 @@ export function ReportPage() {
           minWidth: CELL_MIN,
           whiteSpace: "nowrap",
           fontWeight: bold ? 700 : 400,
-          color: negative ? DESPESA_COLOR : color,
+          color: muted ? "text.disabled" : negative ? DESPESA_COLOR : color,
+          textDecoration: muted ? "line-through" : "none",
         }}
       >
         {formatCell(value)}
       </TableCell>
     );
+  }
+
+  function entryRows(rows: GridCategoryRow["entries"], color: string) {
+    return rows.map((e) => {
+      const isHidden = hidden.has(e.entryId);
+      return (
+        <TableRow key={`e-${e.entryId}`} sx={{ bgcolor: "action.hover" }}>
+          <TableCell sx={{ ...stickyLeft, bgcolor: "background.paper", fontWeight: 400, pl: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Tooltip title={isHidden ? "Exibir no calculo" : "Ocultar do calculo"}>
+                <IconButton
+                  size="small"
+                  onClick={() => toggleHidden(e.entryId)}
+                  aria-label={isHidden ? "Exibir lancamento" : "Ocultar lancamento"}
+                  sx={{ color: isHidden ? "text.disabled" : "primary.main" }}
+                >
+                  {isHidden ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+              <Typography
+                variant="body2"
+                noWrap
+                sx={{ color: isHidden ? "text.disabled" : "text.primary", textDecoration: isHidden ? "line-through" : "none" }}
+              >
+                {e.label}
+              </Typography>
+            </Box>
+          </TableCell>
+          {e.values.map((v, i) => numCell(v, i, color, false, isHidden))}
+        </TableRow>
+      );
+    });
   }
 
   function categoryRows(rows: GridCategoryRow[], color: string) {
@@ -67,12 +125,26 @@ export function ReportPage() {
         </TableRow>
       );
     }
-    return rows.map((r) => (
-      <TableRow key={r.categoryId} hover>
-        <TableCell sx={{ ...stickyLeft, fontWeight: 400 }}>{r.name}</TableCell>
-        {r.values.map((v, i) => numCell(v, i, color))}
-      </TableRow>
-    ));
+    return rows.map((r) => {
+      const isOpen = expanded.has(r.categoryId);
+      return [
+        <TableRow key={`c-${r.categoryId}`} hover>
+          <TableCell
+            sx={{ ...stickyLeft, fontWeight: 600, cursor: "pointer", userSelect: "none" }}
+            onClick={() => toggleExpanded(r.categoryId)}
+          >
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {isOpen ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon2 fontSize="small" />}
+              <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+                {r.name}
+              </Typography>
+            </Box>
+          </TableCell>
+          {r.values.map((v, i) => numCell(v, i, color))}
+        </TableRow>,
+        ...(isOpen ? entryRows(r.entries, color) : []),
+      ];
+    });
   }
 
   function sectionRow(label: string) {
@@ -145,6 +217,21 @@ export function ReportPage() {
         </IconButton>
       </Box>
 
+      {hidden.size > 0 && (
+        <Alert
+          severity="info"
+          icon={<VisibilityOffIcon fontSize="small" />}
+          sx={{ mb: 2, alignItems: "center" }}
+          action={
+            <Button color="inherit" size="small" onClick={() => setHidden(new Set())}>
+              Limpar
+            </Button>
+          }
+        >
+          Simulacao: <Chip size="small" label={hidden.size} sx={{ mx: 0.5 }} /> lancamento(s) oculto(s) dos totais.
+        </Alert>
+      )}
+
       {error && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage(error)}</Alert>}
 
       {isLoading ? (
@@ -153,6 +240,11 @@ export function ReportPage() {
         </Box>
       ) : data ? (
         <Card>
+          <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+            <Typography variant="caption" color="text.secondary">
+              Toque numa categoria para ver os lancamentos e usar o olho para ocultar/exibir nos calculos.
+            </Typography>
+          </Box>
           <TableContainer sx={{ maxHeight: "70dvh" }}>
             <Table stickyHeader size="small">
               <TableHead>

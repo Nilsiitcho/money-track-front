@@ -70,10 +70,17 @@ export interface Dashboard {
   byCategory: { categoryId: number; name: string; total: number }[];
 }
 
+export interface GridEntryRow {
+  entryId: number;
+  label: string;
+  values: number[];
+}
+
 export interface GridCategoryRow {
   categoryId: number;
   name: string;
   values: number[];
+  entries: GridEntryRow[];
 }
 
 export interface Grid {
