@@ -92,6 +92,15 @@ export interface Reserva {
   dailyBudget: number;
 }
 
+export interface ReservaStatus {
+  reserva: number;
+  daysInMonth: number;
+  daysRemaining: number;
+  spentMonth: number;
+  remainingMonth: number;
+  dailyAvailable: number;
+}
+
 export interface Grid {
   months: string[];
   receitas: GridCategoryRow[];

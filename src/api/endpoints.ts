@@ -10,6 +10,7 @@ import type {
   LoginResponse,
   Occurrence,
   Reserva,
+  ReservaStatus,
 } from "./types";
 
 // ---- Auth ----
@@ -108,5 +109,15 @@ export async function setReserva(amount: number, month?: string, fromMonth?: str
     { amount, fromMonth: fromMonth ?? null },
     { params: month ? { month } : {} },
   );
+  return data;
+}
+
+export async function getReservaStatus(date?: string): Promise<ReservaStatus> {
+  const { data } = await api.get<ReservaStatus>("/api/reserva/status", { params: date ? { date } : {} });
+  return data;
+}
+
+export async function createGastoRapido(amount: number, date?: string, description?: string): Promise<ReservaStatus> {
+  const { data } = await api.post<ReservaStatus>("/api/reserva/gastos", { amount, date: date ?? null, description: description ?? null });
   return data;
 }

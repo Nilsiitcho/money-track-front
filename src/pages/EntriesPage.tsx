@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Box, Card, CardContent, Stack, TextField, MenuItem, Typography, IconButton,
-  List, ListItem, ListItemText, Chip, CircularProgress, Alert, Divider,
+  List, ListItem, ListItemText, Chip, CircularProgress, Alert, Divider, Button,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
 import { MonthSelector } from "../components/MonthSelector";
 import { EntryFormDialog } from "../components/EntryFormDialog";
 import { ScopeDialog } from "../components/ScopeDialog";
@@ -30,6 +31,7 @@ export function EntriesPage() {
   const [recurrence, setRecurrence] = useState("");
   const [q, setQ] = useState("");
 
+  const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<{ entryId: number; occurrenceMonth: string } | null>(null);
   const [deleteScopeFor, setDeleteScopeFor] = useState<Occurrence | null>(null);
   const [confirmFor, setConfirmFor] = useState<Occurrence | null>(null);
@@ -70,6 +72,12 @@ export function EntriesPage() {
   return (
     <Box>
       <MonthSelector month={month} onChange={setMonth} />
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreating(true)}>
+          Novo lancamento
+        </Button>
+      </Box>
 
       <Card sx={{ mb: 2 }}>
         <CardContent>
@@ -187,11 +195,11 @@ export function EntriesPage() {
         </Card>
       )}
 
-      {/* Edicao */}
+      {/* Criacao / Edicao (formulario completo) */}
       <EntryFormDialog
-        open={!!editing}
+        open={!!editing || creating}
         editing={editing}
-        onClose={() => setEditing(null)}
+        onClose={() => { setEditing(null); setCreating(false); }}
         onSaved={() => queryClient.invalidateQueries()}
         categories={categoriesQuery.data ?? []}
         defaultMonth={month}

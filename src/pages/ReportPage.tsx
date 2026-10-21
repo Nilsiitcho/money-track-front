@@ -136,6 +136,10 @@ export function ReportPage() {
       if (r.kind === "RESERVA") {
         return [reservaRow(r, color)];
       }
+      // Excedente de Reserva: linha derivada (soma dos gastos acima da reserva).
+      if (r.kind === "RESERVA_EXCESS") {
+        return [excedenteRow(r)];
+      }
       const isOpen = expanded.has(r.categoryId);
       return [
         <TableRow key={`c-${r.categoryId}`} hover>
@@ -155,6 +159,33 @@ export function ReportPage() {
         ...(isOpen ? entryRows(r.entries, color) : []),
       ];
     });
+  }
+
+  // Linha do Excedente de Reserva: destaque mais forte (vermelho), nao ocultavel.
+  function excedenteRow(r: GridCategoryRow) {
+    const accent = { bgcolor: "rgba(198,40,40,0.14)" };
+    return (
+      <TableRow key={`c-${r.categoryId}`}>
+        <TableCell
+          sx={{ ...stickyLeft, ...accent, borderLeft: "3px solid", borderLeftColor: DESPESA_COLOR, color: DESPESA_COLOR }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, pl: 3.5 }}>
+            <Typography variant="body2" noWrap sx={{ fontWeight: 700, color: DESPESA_COLOR }}>
+              {r.name}
+            </Typography>
+          </Box>
+        </TableCell>
+        {r.values.map((v, i) => (
+          <TableCell
+            key={i}
+            align="right"
+            sx={{ ...accent, minWidth: CELL_MIN, whiteSpace: "nowrap", fontWeight: 700, color: DESPESA_COLOR }}
+          >
+            {formatCell(v)}
+          </TableCell>
+        ))}
+      </TableRow>
+    );
   }
 
   // Linha unica da Reserva: distincao leve + olho para ocultar na simulacao.

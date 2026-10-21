@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AppBar, Toolbar, Typography, IconButton, Box, Container,
   BottomNavigation, BottomNavigationAction, Paper, Fab,
@@ -15,9 +14,7 @@ import SavingsIcon from "@mui/icons-material/Savings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AddIcon from "@mui/icons-material/Add";
 import { useAuth } from "../auth/AuthContext";
-import { listCategories } from "../api/endpoints";
-import { EntryFormDialog } from "./EntryFormDialog";
-import { currentMonth } from "../lib/format";
+import { QuickEntryDialog } from "./QuickEntryDialog";
 
 const NAV = [
   { label: "Painel", icon: <DashboardIcon />, path: "/" },
@@ -33,25 +30,11 @@ export function AppLayout() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const [addOpen, setAddOpen] = useState(false);
 
-  const categoriesQuery = useQuery({
-    queryKey: ["categories", false],
-    queryFn: () => listCategories(false),
-  });
-
-  const dialog = (
-    <EntryFormDialog
-      open={addOpen}
-      onClose={() => setAddOpen(false)}
-      onSaved={() => queryClient.invalidateQueries()}
-      categories={categoriesQuery.data ?? []}
-      defaultMonth={currentMonth()}
-    />
-  );
+  const dialog = <QuickEntryDialog open={addOpen} onClose={() => setAddOpen(false)} />;
 
   const logoutButton = (
     <IconButton color="inherit" onClick={logout} aria-label="Sair">
@@ -79,7 +62,7 @@ export function AppLayout() {
 
         <Fab
           color="primary"
-          aria-label="Novo lancamento"
+          aria-label="Gasto rapido"
           onClick={() => setAddOpen(true)}
           sx={{ position: "fixed", bottom: 72, right: 16, zIndex: (t) => t.zIndex.appBar + 1 }}
         >
@@ -125,8 +108,8 @@ export function AppLayout() {
       >
         <Toolbar />
         <Box sx={{ p: 2 }}>
-          <Button fullWidth startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
-            Novo lancamento
+          <Button fullWidth variant="contained" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
+            Gasto rapido
           </Button>
         </Box>
         <List>
