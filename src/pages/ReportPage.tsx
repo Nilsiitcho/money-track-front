@@ -18,7 +18,7 @@ import { RECEITA_COLOR, DESPESA_COLOR } from "../theme";
 import type { GridCategoryRow } from "../api/types";
 
 const MONTHS = 12;
-const FIRST_COL = 160;
+const FIRST_COL = 220;
 const CELL_MIN = 78;
 
 // Celula da primeira coluna: fixa ao rolar horizontalmente
@@ -105,13 +105,15 @@ export function ReportPage() {
                   {isHidden ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
                 </IconButton>
               </Tooltip>
-              <Typography
-                variant="body2"
-                noWrap
-                sx={{ color: isHidden ? "text.disabled" : "text.primary", textDecoration: isHidden ? "line-through" : "none" }}
-              >
-                {e.label}
-              </Typography>
+              <Tooltip title={e.label}>
+                <Typography
+                  variant="body2"
+                  noWrap
+                  sx={{ color: isHidden ? "text.disabled" : "text.primary", textDecoration: isHidden ? "line-through" : "none" }}
+                >
+                  {e.label}
+                </Typography>
+              </Tooltip>
             </Box>
           </TableCell>
           {e.values.map((v, i) => numCell(v, i, color, false, isHidden))}
@@ -149,9 +151,11 @@ export function ReportPage() {
           >
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {isOpen ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon2 fontSize="small" />}
-              <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
-                {r.name}
-              </Typography>
+              <Tooltip title={r.name}>
+                <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+                  {r.name}
+                </Typography>
+              </Tooltip>
             </Box>
           </TableCell>
           {r.values.map((v, i) => numCell(v, i, color))}
@@ -170,9 +174,11 @@ export function ReportPage() {
           sx={{ ...stickyLeft, ...accent, borderLeft: "3px solid", borderLeftColor: DESPESA_COLOR, color: DESPESA_COLOR }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, pl: 3.5 }}>
-            <Typography variant="body2" noWrap sx={{ fontWeight: 700, color: DESPESA_COLOR }}>
-              {r.name}
-            </Typography>
+            <Tooltip title={r.name}>
+              <Typography variant="body2" noWrap sx={{ fontWeight: 700, color: DESPESA_COLOR }}>
+                {r.name}
+              </Typography>
+            </Tooltip>
           </Box>
         </TableCell>
         {r.values.map((v, i) => (
@@ -213,13 +219,15 @@ export function ReportPage() {
               </Tooltip>
             )}
             <SavingsIcon fontSize="small" sx={{ color: isHidden ? "text.disabled" : DESPESA_COLOR }} />
-            <Typography
-              variant="body2"
-              noWrap
-              sx={{ fontWeight: 600, fontStyle: "italic", color: isHidden ? "text.disabled" : "text.primary", textDecoration: isHidden ? "line-through" : "none" }}
-            >
-              {r.name}
-            </Typography>
+            <Tooltip title={r.name}>
+              <Typography
+                variant="body2"
+                noWrap
+                sx={{ fontWeight: 600, fontStyle: "italic", color: isHidden ? "text.disabled" : "text.primary", textDecoration: isHidden ? "line-through" : "none" }}
+              >
+                {r.name}
+              </Typography>
+            </Tooltip>
           </Box>
         </TableCell>
         {values.map((v, i) => numCell(v, i, color, false, isHidden))}
