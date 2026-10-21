@@ -6,6 +6,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { EntriesPage } from "./pages/EntriesPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { ReportPage } from "./pages/ReportPage";
+import { ReservaPage } from "./pages/ReservaPage";
 
 export function App() {
   return (
@@ -15,6 +16,7 @@ export function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/report" element={<ReportPage />} />
+          <Route path="/reserva" element={<ReservaPage />} />
           <Route path="/entries" element={<EntriesPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
         </Route>

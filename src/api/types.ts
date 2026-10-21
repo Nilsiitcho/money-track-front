@@ -79,8 +79,17 @@ export interface GridEntryRow {
 export interface GridCategoryRow {
   categoryId: number;
   name: string;
+  kind: string;
   values: number[];
   entries: GridEntryRow[];
+}
+
+export interface Reserva {
+  categoryId: number;
+  amount: number;
+  month: string;
+  daysInMonth: number;
+  dailyBudget: number;
 }
 
 export interface Grid {

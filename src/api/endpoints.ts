@@ -9,6 +9,7 @@ import type {
   Grid,
   LoginResponse,
   Occurrence,
+  Reserva,
 } from "./types";
 
 // ---- Auth ----
@@ -92,5 +93,20 @@ export async function getGrid(from: string, months = 12, exclude: number[] = [])
   const params: Record<string, string | number> = { from, months };
   if (exclude.length > 0) params.exclude = exclude.join(",");
   const { data } = await api.get<Grid>("/api/report/grid", { params });
+  return data;
+}
+
+// ---- Reserva de Gastos ----
+export async function getReserva(month?: string): Promise<Reserva> {
+  const { data } = await api.get<Reserva>("/api/reserva", { params: month ? { month } : {} });
+  return data;
+}
+
+export async function setReserva(amount: number, month?: string, fromMonth?: string): Promise<Reserva> {
+  const { data } = await api.put<Reserva>(
+    "/api/reserva",
+    { amount, fromMonth: fromMonth ?? null },
+    { params: month ? { month } : {} },
+  );
   return data;
 }

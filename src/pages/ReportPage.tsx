@@ -10,6 +10,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon2 from "@mui/icons-material/KeyboardArrowRight";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import SavingsIcon from "@mui/icons-material/Savings";
 import { getGrid } from "../api/endpoints";
 import { errorMessage } from "../api/client";
 import { currentMonth, formatCell, formatMonthShort, shiftMonth } from "../lib/format";
@@ -132,15 +133,25 @@ export function ReportPage() {
     }
     return rows.map((r) => {
       const isOpen = expanded.has(r.categoryId);
+      const isReserva = r.kind === "RESERVA";
       return [
-        <TableRow key={`c-${r.categoryId}`} hover>
+        <TableRow key={`c-${r.categoryId}`} hover sx={isReserva ? { bgcolor: "rgba(198,40,40,0.06)" } : undefined}>
           <TableCell
-            sx={{ ...stickyLeft, fontWeight: 600, cursor: "pointer", userSelect: "none" }}
+            sx={{
+              ...stickyLeft,
+              fontWeight: 600,
+              cursor: "pointer",
+              userSelect: "none",
+              ...(isReserva
+                ? { bgcolor: "rgba(198,40,40,0.06)", borderLeft: "3px solid", borderLeftColor: DESPESA_COLOR }
+                : {}),
+            }}
             onClick={() => toggleExpanded(r.categoryId)}
           >
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {isOpen ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon2 fontSize="small" />}
-              <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+              {isReserva && <SavingsIcon fontSize="small" sx={{ color: DESPESA_COLOR, mr: 0.5 }} />}
+              <Typography variant="body2" noWrap sx={{ fontWeight: 600, fontStyle: isReserva ? "italic" : "normal" }}>
                 {r.name}
               </Typography>
             </Box>

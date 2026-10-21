@@ -11,6 +11,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import TableChartIcon from "@mui/icons-material/TableChart";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CategoryIcon from "@mui/icons-material/Category";
+import SavingsIcon from "@mui/icons-material/Savings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AddIcon from "@mui/icons-material/Add";
 import { useAuth } from "../auth/AuthContext";
@@ -21,6 +22,7 @@ import { currentMonth } from "../lib/format";
 const NAV = [
   { label: "Painel", icon: <DashboardIcon />, path: "/" },
   { label: "Tabela", icon: <TableChartIcon />, path: "/report" },
+  { label: "Reserva", icon: <SavingsIcon />, path: "/reserva" },
   { label: "Lancamentos", icon: <ReceiptLongIcon />, path: "/entries" },
   { label: "Categorias", icon: <CategoryIcon />, path: "/categories" },
 ];
