@@ -69,8 +69,9 @@ export function ReportPage() {
     });
   }
 
-  function numCell(value: number, key: number, color?: string, bold?: boolean, muted?: boolean) {
+  function numCell(value: number, key: number, color?: string, bold?: boolean, muted?: boolean, celebrate?: boolean) {
     const negative = value < 0;
+    const party = celebrate && value !== 0 && !muted;
     return (
       <TableCell
         key={key}
@@ -83,7 +84,15 @@ export function ReportPage() {
           textDecoration: muted ? "line-through" : "none",
         }}
       >
-        {formatCell(value)}
+        {party ? (
+          <Tooltip title="Ultima parcela — divida quitada!">
+            <Box component="span" sx={{ whiteSpace: "nowrap" }}>
+              {formatCell(value)} <span aria-label="comemoracao">🎉</span>
+            </Box>
+          </Tooltip>
+        ) : (
+          formatCell(value)
+        )}
       </TableCell>
     );
   }
@@ -116,7 +125,7 @@ export function ReportPage() {
               </Tooltip>
             </Box>
           </TableCell>
-          {e.values.map((v, i) => numCell(v, i, color, false, isHidden))}
+          {e.values.map((v, i) => numCell(v, i, color, false, isHidden, e.finalMonth === months[i]))}
         </TableRow>
       );
     });
@@ -202,7 +211,7 @@ export function ReportPage() {
             </Tooltip>
           </Box>
         </TableCell>
-        {values.map((v, i) => numCell(v, i, color, false, isHidden))}
+        {values.map((v, i) => numCell(v, i, color, false, isHidden, entry?.finalMonth === months[i]))}
       </TableRow>
     );
   }

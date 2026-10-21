@@ -74,6 +74,7 @@ export interface GridEntryRow {
   entryId: number;
   label: string;
   values: number[];
+  finalMonth: string | null;
 }
 
 export interface GridCategoryRow {
