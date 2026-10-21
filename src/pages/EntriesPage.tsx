@@ -163,7 +163,7 @@ export function EntriesPage() {
                       }
                       secondary={
                         <Stack direction="row" spacing={0.5} mt={0.5} flexWrap="wrap" useFlexGap>
-                          <Chip size="small" label={occ.categoryName} />
+                          <Chip size="small" label={occ.categoryName ?? "Sem categoria"} />
                           <Chip size="small" variant="outlined" label={RECURRENCE_LABEL[occ.recurrence]} />
                           {occ.installmentLabel && (
                             <Chip size="small" variant="outlined" label={`Parcela ${occ.installmentLabel}`} />

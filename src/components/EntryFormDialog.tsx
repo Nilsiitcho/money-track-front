@@ -19,7 +19,7 @@ const schema = z
     type: z.enum(["RECEITA", "DESPESA"]),
     description: z.string().trim().min(1, "Informe a descricao").max(255, "Maximo 255 caracteres"),
     amount: z.number().positive("Valor deve ser maior que zero"),
-    categoryId: z.number().int().positive("Selecione a categoria"),
+    categoryId: z.number().int().positive().nullable(),
     recurrence: z.enum(["UNICO", "FIXO", "PARCELADO"]),
     startMonth: z.string().regex(/^\d{4}-\d{2}$/, "Informe o mes"),
     parceladoMode: z.enum(["installments", "end"]),
@@ -48,7 +48,7 @@ function defaults(month: string): FormValues {
     type: "DESPESA",
     description: "",
     amount: 0,
-    categoryId: 0 as unknown as number,
+    categoryId: null,
     recurrence: "UNICO",
     startMonth: month,
     parceladoMode: "installments",
@@ -116,8 +116,8 @@ export function EntryFormDialog({ open, onClose, onSaved, categories, defaultMon
   // Opcoes de categoria (inclui a do lancamento editado mesmo se arquivada)
   const options = [...categories];
   const rule = ruleQuery.data;
-  if (rule && !options.some((c) => c.id === rule.categoryId)) {
-    options.push({ id: rule.categoryId, name: rule.categoryName, archived: true });
+  if (rule && rule.categoryId != null && !options.some((c) => c.id === rule.categoryId)) {
+    options.push({ id: rule.categoryId, name: rule.categoryName ?? "", archived: true });
   }
 
   async function persist(values: FormValues, scope?: EditScope) {
@@ -223,12 +223,13 @@ export function EntryFormDialog({ open, onClose, onSaved, categories, defaultMon
                 <TextField
                   {...field}
                   select
-                  label="Categoria"
-                  value={field.value || ""}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  label="Categoria (opcional)"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value === "" ? null : Number(e.target.value))}
                   error={!!errors.categoryId}
                   helperText={errors.categoryId?.message}
                 >
+                  <MenuItem value="">Sem categoria</MenuItem>
                   {options.map((c) => (
                     <MenuItem key={c.id} value={c.id}>
                       {c.name}

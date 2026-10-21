@@ -20,8 +20,8 @@ export interface Occurrence {
   type: EntryType;
   description: string;
   amount: number;
-  categoryId: number;
-  categoryName: string;
+  categoryId: number | null;
+  categoryName: string | null;
   month: string; // YYYY-MM
   recurrence: Recurrence;
   installmentLabel: string | null;
@@ -33,8 +33,8 @@ export interface EntryRule {
   type: EntryType;
   description: string;
   amount: number;
-  categoryId: number;
-  categoryName: string;
+  categoryId: number | null;
+  categoryName: string | null;
   recurrence: Recurrence;
   startMonth: string;
   endMonth: string | null;
@@ -46,7 +46,7 @@ export interface EntryCreatePayload {
   type: EntryType;
   description: string;
   amount: number;
-  categoryId: number;
+  categoryId: number | null;
   recurrence: Recurrence;
   startMonth: string;
   endMonth?: string | null;
@@ -57,7 +57,7 @@ export interface EntryUpdatePayload {
   type: EntryType;
   description: string;
   amount: number;
-  categoryId: number;
+  categoryId: number | null;
   scope?: EditScope;
   referenceMonth?: string | null;
 }
@@ -77,7 +77,7 @@ export interface GridEntryRow {
 }
 
 export interface GridCategoryRow {
-  categoryId: number;
+  categoryId: number | null;
   name: string;
   kind: string;
   values: number[];

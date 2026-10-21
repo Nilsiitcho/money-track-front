@@ -142,12 +142,17 @@ export function ReportPage() {
       if (r.kind === "RESERVA_EXCESS") {
         return [excedenteRow(r)];
       }
-      const isOpen = expanded.has(r.categoryId);
+      // Lancamento sem categoria: linha unica no grupo.
+      if (r.kind === "SINGLE") {
+        return [singleRow(r, color)];
+      }
+      const catId = r.categoryId ?? 0;
+      const isOpen = expanded.has(catId);
       return [
-        <TableRow key={`c-${r.categoryId}`} hover>
+        <TableRow key={`c-${catId}`} hover>
           <TableCell
             sx={{ ...stickyLeft, fontWeight: 600, cursor: "pointer", userSelect: "none" }}
-            onClick={() => toggleExpanded(r.categoryId)}
+            onClick={() => toggleExpanded(catId)}
           >
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {isOpen ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon2 fontSize="small" />}
@@ -163,6 +168,43 @@ export function ReportPage() {
         ...(isOpen ? entryRows(r.entries, color) : []),
       ];
     });
+  }
+
+  // Linha unica de um lancamento sem categoria (com olho para a simulacao).
+  function singleRow(r: GridCategoryRow, color: string) {
+    const entry = r.entries[0];
+    const isHidden = entry ? hidden.has(entry.entryId) : false;
+    const values = entry ? entry.values : r.values;
+    return (
+      <TableRow key={`s-${entry?.entryId ?? r.name}`} hover>
+        <TableCell sx={{ ...stickyLeft, fontWeight: 400 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            {entry && (
+              <Tooltip title={isHidden ? "Exibir no calculo" : "Ocultar do calculo"}>
+                <IconButton
+                  size="small"
+                  onClick={() => toggleHidden(entry.entryId)}
+                  aria-label={isHidden ? "Exibir lancamento" : "Ocultar lancamento"}
+                  sx={{ color: isHidden ? "text.disabled" : "primary.main" }}
+                >
+                  {isHidden ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            )}
+            <Tooltip title={r.name}>
+              <Typography
+                variant="body2"
+                noWrap
+                sx={{ fontWeight: 600, color: isHidden ? "text.disabled" : "text.primary", textDecoration: isHidden ? "line-through" : "none" }}
+              >
+                {r.name}
+              </Typography>
+            </Tooltip>
+          </Box>
+        </TableCell>
+        {values.map((v, i) => numCell(v, i, color, false, isHidden))}
+      </TableRow>
+    );
   }
 
   // Linha do Excedente de Reserva: destaque mais forte (vermelho), nao ocultavel.
