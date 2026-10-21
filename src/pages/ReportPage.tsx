@@ -23,6 +23,11 @@ import type { GridCategoryRow } from "../api/types";
 const MONTHS = 12;
 const FIRST_COL = 220;
 const CELL_MIN = 78;
+// Alturas fixas para empilhar os totalizadores sticky no topo (header + 4 linhas).
+const HEAD_H = 37;
+const SUM_H = 37;
+const NEG_BG = "#fbe3cf";
+const REC_BG = "#e1efe3";
 
 // Celula da primeira coluna: fixa ao rolar horizontalmente
 const stickyLeft = {
@@ -303,58 +308,46 @@ export function ReportPage() {
     );
   }
 
-  function totalRow(label: string, values: number[], color?: string) {
+  // Linha totalizadora sticky no topo (empilhada abaixo do header de meses).
+  // projected=true aplica o estilo do Saldo Projetado + marcadores de negativo/recuperacao.
+  function summaryRow(
+    label: string, values: number[], top: number, bg: string, color?: string, projected?: boolean,
+  ) {
+    const negIdx = projected ? values.findIndex((x) => x < 0) : -1;
+    const recIdx = negIdx >= 0 ? values.findIndex((x, j) => j > negIdx && x >= 0) : -1;
+    const borderSx = projected ? { borderTop: "2px solid", borderTopColor: "primary.main", fontSize: "0.9rem" } : {};
     return (
-      <TableRow>
-        <TableCell sx={{ ...stickyLeft, bgcolor: "grey.50", fontWeight: 700 }}>{label}</TableCell>
-        {values.map((v, i) => numCell(v, i, color, true))}
-      </TableRow>
-    );
-  }
-
-  // Linha de saldo acumulado: estilo de destaque (fundo azul, borda, texto maior)
-  function accumulatedRow(values: number[]) {
-    const cellSx = {
-      minWidth: CELL_MIN,
-      whiteSpace: "nowrap" as const,
-      fontWeight: 700,
-      fontSize: "0.9rem",
-      bgcolor: "#e8f2fc",
-      borderTop: "2px solid",
-      borderTopColor: "primary.main",
-    };
-    return (
-      <TableRow>
+      <TableRow key={label}>
         <TableCell
           sx={{
-            ...stickyLeft,
-            bgcolor: "#e8f2fc",
-            color: "primary.dark",
-            fontSize: "0.9rem",
-            borderTop: "2px solid",
-            borderTopColor: "primary.main",
+            ...stickyLeft, top, zIndex: 4, bgcolor: bg, height: SUM_H, fontWeight: 700,
+            color: projected ? "primary.dark" : undefined, ...borderSx,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            Saldo Projetado
-            <Tooltip title="Soma dos saldos mensais desde o primeiro lancamento. Comeca do zero e os meses futuros sao projecao com base nos lancamentos cadastrados.">
-              <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.7 }} />
-            </Tooltip>
-          </Box>
+          {projected ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              {label}
+              <Tooltip title="Soma dos saldos mensais desde o primeiro lancamento. Comeca do zero e os meses futuros sao projecao com base nos lancamentos cadastrados.">
+                <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.7 }} />
+              </Tooltip>
+            </Box>
+          ) : (
+            label
+          )}
         </TableCell>
         {values.map((v, i) => {
-          const negIdx = values.findIndex((x) => x < 0);
-          const firstNeg = negIdx === i;
-          const recovery = negIdx >= 0 && i === values.findIndex((x, j) => j > negIdx && x >= 0);
+          const firstNeg = i === negIdx;
+          const recovery = i === recIdx;
+          const cellBg = firstNeg ? NEG_BG : recovery ? REC_BG : bg;
           return (
             <TableCell
               key={i}
               align="right"
               sx={{
-                ...cellSx,
-                color: v < 0 ? DESPESA_COLOR : recovery ? RECEITA_COLOR : "primary.dark",
-                ...(firstNeg ? { bgcolor: "rgba(237,108,2,0.16)" } : {}),
-                ...(recovery ? { bgcolor: "rgba(46,125,50,0.14)" } : {}),
+                position: "sticky", top, zIndex: 3, bgcolor: cellBg, height: SUM_H,
+                minWidth: CELL_MIN, whiteSpace: "nowrap", fontWeight: 700,
+                color: v < 0 ? DESPESA_COLOR : recovery ? RECEITA_COLOR : projected ? "primary.dark" : color,
+                ...borderSx,
               }}
             >
               {firstNeg ? (
@@ -454,25 +447,25 @@ export function ReportPage() {
               </colgroup>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ ...stickyLeft, zIndex: 3, top: 0 }}>Categoria</TableCell>
+                  <TableCell sx={{ ...stickyLeft, zIndex: 5, top: 0, height: HEAD_H }}>Categoria</TableCell>
                   {months.map((m) => (
-                    <TableCell key={m} align="right" sx={{ minWidth: CELL_MIN, whiteSpace: "nowrap", fontWeight: 600, textTransform: "capitalize" }}>
+                    <TableCell key={m} align="right" sx={{ top: 0, height: HEAD_H, minWidth: CELL_MIN, whiteSpace: "nowrap", fontWeight: 600, textTransform: "capitalize" }}>
                       {formatMonthShort(m)}
                     </TableCell>
                   ))}
                 </TableRow>
+                {/* Totalizadores fixos no topo (empilhados abaixo do header de meses) */}
+                {summaryRow("Total receitas", data.totalReceitas, HEAD_H, "grey.50", RECEITA_COLOR)}
+                {summaryRow("Total despesas", data.totalDespesas, HEAD_H + SUM_H, "grey.50", DESPESA_COLOR)}
+                {summaryRow("Saldo do mes", data.saldo, HEAD_H + SUM_H * 2, "grey.100")}
+                {summaryRow("Saldo Projetado", data.accumulated, HEAD_H + SUM_H * 3, "#e8f2fc", undefined, true)}
               </TableHead>
               <TableBody>
                 {sectionRow("RECEITAS")}
                 {categoryRows(data.receitas, RECEITA_COLOR)}
-                {totalRow("Total receitas", data.totalReceitas, RECEITA_COLOR)}
 
                 {sectionRow("DESPESAS")}
                 {categoryRows(data.despesas, DESPESA_COLOR)}
-                {totalRow("Total despesas", data.totalDespesas, DESPESA_COLOR)}
-
-                {totalRow("Saldo do mes", data.saldo)}
-                {accumulatedRow(data.accumulated)}
               </TableBody>
             </Table>
           </TableContainer>
