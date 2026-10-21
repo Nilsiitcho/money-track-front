@@ -13,6 +13,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import SavingsIcon from "@mui/icons-material/Savings";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import { getGrid } from "../api/endpoints";
 import { errorMessage } from "../api/client";
 import { currentMonth, formatCell, formatMoney, formatMonthShort, shiftMonth } from "../lib/format";
@@ -55,8 +56,10 @@ export function ReportPage() {
   const rangeLabel =
     months.length > 0 ? `${formatMonthShort(months[0])} – ${formatMonthShort(months[months.length - 1])}` : "";
 
-  // Alerta: primeiro mes da janela em que o saldo projetado fica negativo.
-  const firstNegIdx = (data?.accumulated ?? []).findIndex((v) => v < 0);
+  // Alerta: 1o mes negativo e, depois dele, o 1o mes que volta a positivo.
+  const acc = data?.accumulated ?? [];
+  const firstNegIdx = acc.findIndex((v) => v < 0);
+  const recoveryIdx = firstNegIdx >= 0 ? acc.findIndex((v, i) => i > firstNegIdx && v >= 0) : -1;
 
   function toggleHidden(entryId: number) {
     setHidden((prev) => {
@@ -340,21 +343,30 @@ export function ReportPage() {
           </Box>
         </TableCell>
         {values.map((v, i) => {
-          const firstNeg = values.findIndex((x) => x < 0) === i;
+          const negIdx = values.findIndex((x) => x < 0);
+          const firstNeg = negIdx === i;
+          const recovery = negIdx >= 0 && i === values.findIndex((x, j) => j > negIdx && x >= 0);
           return (
             <TableCell
               key={i}
               align="right"
               sx={{
                 ...cellSx,
-                color: v < 0 ? DESPESA_COLOR : "primary.dark",
+                color: v < 0 ? DESPESA_COLOR : recovery ? RECEITA_COLOR : "primary.dark",
                 ...(firstNeg ? { bgcolor: "rgba(237,108,2,0.16)" } : {}),
+                ...(recovery ? { bgcolor: "rgba(46,125,50,0.14)" } : {}),
               }}
             >
               {firstNeg ? (
                 <Tooltip title="Primeiro mes com saldo projetado negativo">
                   <Box component="span" sx={{ whiteSpace: "nowrap" }}>
                     <WarningAmberIcon fontSize="inherit" sx={{ verticalAlign: "-2px", mr: 0.25 }} /> {formatCell(v)}
+                  </Box>
+                </Tooltip>
+              ) : recovery ? (
+                <Tooltip title="Saldo projetado volta a positivo">
+                  <Box component="span" sx={{ whiteSpace: "nowrap" }}>
+                    <TrendingUpIcon fontSize="inherit" sx={{ verticalAlign: "-2px", mr: 0.25 }} /> {formatCell(v)}
                   </Box>
                 </Tooltip>
               ) : (
@@ -402,7 +414,16 @@ export function ReportPage() {
       {data && firstNegIdx >= 0 && (
         <Alert severity="warning" icon={<WarningAmberIcon fontSize="inherit" />} sx={{ mb: 2 }}>
           Saldo projetado fica <strong>negativo</strong> em {formatMonthShort(months[firstNegIdx])}{" "}
-          ({formatMoney(data.accumulated[firstNegIdx])}).
+          ({formatMoney(data.accumulated[firstNegIdx])})
+          {recoveryIdx >= 0 ? (
+            <>
+              {" "}
+              ate <strong>{formatMonthShort(months[recoveryIdx])}</strong>{" "}
+              ({formatMoney(data.accumulated[recoveryIdx])}).
+            </>
+          ) : (
+            " e nao volta a positivo nesta janela."
+          )}
         </Alert>
       )}
 
