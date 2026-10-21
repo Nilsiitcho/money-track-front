@@ -12,9 +12,10 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import SavingsIcon from "@mui/icons-material/Savings";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { getGrid } from "../api/endpoints";
 import { errorMessage } from "../api/client";
-import { currentMonth, formatCell, formatMonthShort, shiftMonth } from "../lib/format";
+import { currentMonth, formatCell, formatMoney, formatMonthShort, shiftMonth } from "../lib/format";
 import { RECEITA_COLOR, DESPESA_COLOR } from "../theme";
 import type { GridCategoryRow } from "../api/types";
 
@@ -53,6 +54,9 @@ export function ReportPage() {
   const months = data?.months ?? [];
   const rangeLabel =
     months.length > 0 ? `${formatMonthShort(months[0])} – ${formatMonthShort(months[months.length - 1])}` : "";
+
+  // Alerta: primeiro mes da janela em que o saldo projetado fica negativo.
+  const firstNegIdx = (data?.accumulated ?? []).findIndex((v) => v < 0);
 
   function toggleHidden(entryId: number) {
     setHidden((prev) => {
@@ -335,15 +339,30 @@ export function ReportPage() {
             </Tooltip>
           </Box>
         </TableCell>
-        {values.map((v, i) => (
-          <TableCell
-            key={i}
-            align="right"
-            sx={{ ...cellSx, color: v < 0 ? DESPESA_COLOR : "primary.dark" }}
-          >
-            {formatCell(v)}
-          </TableCell>
-        ))}
+        {values.map((v, i) => {
+          const firstNeg = values.findIndex((x) => x < 0) === i;
+          return (
+            <TableCell
+              key={i}
+              align="right"
+              sx={{
+                ...cellSx,
+                color: v < 0 ? DESPESA_COLOR : "primary.dark",
+                ...(firstNeg ? { bgcolor: "rgba(237,108,2,0.16)" } : {}),
+              }}
+            >
+              {firstNeg ? (
+                <Tooltip title="Primeiro mes com saldo projetado negativo">
+                  <Box component="span" sx={{ whiteSpace: "nowrap" }}>
+                    <WarningAmberIcon fontSize="inherit" sx={{ verticalAlign: "-2px", mr: 0.25 }} /> {formatCell(v)}
+                  </Box>
+                </Tooltip>
+              ) : (
+                formatCell(v)
+              )}
+            </TableCell>
+          );
+        })}
       </TableRow>
     );
   }
@@ -379,6 +398,13 @@ export function ReportPage() {
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage(error)}</Alert>}
+
+      {data && firstNegIdx >= 0 && (
+        <Alert severity="warning" icon={<WarningAmberIcon fontSize="inherit" />} sx={{ mb: 2 }}>
+          Saldo projetado fica <strong>negativo</strong> em {formatMonthShort(months[firstNegIdx])}{" "}
+          ({formatMoney(data.accumulated[firstNegIdx])}).
+        </Alert>
+      )}
 
       {isLoading ? (
         <Box display="flex" justifyContent="center" py={6}>
