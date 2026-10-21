@@ -70,7 +70,7 @@ export function ReservaPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle2" gutterBottom>
-                Reserva de Gastos
+                Reserva
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Valor mensal para gastos variaveis. Lancado automaticamente como despesa fixa.

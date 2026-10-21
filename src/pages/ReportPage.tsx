@@ -132,26 +132,20 @@ export function ReportPage() {
       );
     }
     return rows.map((r) => {
+      // Reserva: linha unica (nao e categoria expansivel), com olho inline para simulacao.
+      if (r.kind === "RESERVA") {
+        return [reservaRow(r, color)];
+      }
       const isOpen = expanded.has(r.categoryId);
-      const isReserva = r.kind === "RESERVA";
       return [
-        <TableRow key={`c-${r.categoryId}`} hover sx={isReserva ? { bgcolor: "rgba(198,40,40,0.06)" } : undefined}>
+        <TableRow key={`c-${r.categoryId}`} hover>
           <TableCell
-            sx={{
-              ...stickyLeft,
-              fontWeight: 600,
-              cursor: "pointer",
-              userSelect: "none",
-              ...(isReserva
-                ? { bgcolor: "rgba(198,40,40,0.06)", borderLeft: "3px solid", borderLeftColor: DESPESA_COLOR }
-                : {}),
-            }}
+            sx={{ ...stickyLeft, fontWeight: 600, cursor: "pointer", userSelect: "none" }}
             onClick={() => toggleExpanded(r.categoryId)}
           >
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {isOpen ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon2 fontSize="small" />}
-              {isReserva && <SavingsIcon fontSize="small" sx={{ color: DESPESA_COLOR, mr: 0.5 }} />}
-              <Typography variant="body2" noWrap sx={{ fontWeight: 600, fontStyle: isReserva ? "italic" : "normal" }}>
+              <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                 {r.name}
               </Typography>
             </Box>
@@ -161,6 +155,45 @@ export function ReportPage() {
         ...(isOpen ? entryRows(r.entries, color) : []),
       ];
     });
+  }
+
+  // Linha unica da Reserva: distincao leve + olho para ocultar na simulacao.
+  function reservaRow(r: GridCategoryRow, color: string) {
+    const entry = r.entries[0];
+    const isHidden = entry ? hidden.has(entry.entryId) : false;
+    const values = entry ? entry.values : r.values;
+    const accent = { bgcolor: "rgba(198,40,40,0.06)" };
+    return (
+      <TableRow key={`c-${r.categoryId}`} hover sx={accent}>
+        <TableCell
+          sx={{ ...stickyLeft, ...accent, borderLeft: "3px solid", borderLeftColor: DESPESA_COLOR }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            {entry && (
+              <Tooltip title={isHidden ? "Exibir no calculo" : "Ocultar do calculo"}>
+                <IconButton
+                  size="small"
+                  onClick={() => toggleHidden(entry.entryId)}
+                  aria-label={isHidden ? "Exibir reserva" : "Ocultar reserva"}
+                  sx={{ color: isHidden ? "text.disabled" : "primary.main" }}
+                >
+                  {isHidden ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            )}
+            <SavingsIcon fontSize="small" sx={{ color: isHidden ? "text.disabled" : DESPESA_COLOR }} />
+            <Typography
+              variant="body2"
+              noWrap
+              sx={{ fontWeight: 600, fontStyle: "italic", color: isHidden ? "text.disabled" : "text.primary", textDecoration: isHidden ? "line-through" : "none" }}
+            >
+              {r.name}
+            </Typography>
+          </Box>
+        </TableCell>
+        {values.map((v, i) => numCell(v, i, color, false, isHidden))}
+      </TableRow>
+    );
   }
 
   function sectionRow(label: string) {
