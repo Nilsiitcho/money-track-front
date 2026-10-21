@@ -93,6 +93,44 @@ export function ReportPage() {
     );
   }
 
+  // Linha de saldo acumulado: estilo de destaque (fundo azul, borda, texto maior)
+  function accumulatedRow(values: number[]) {
+    const cellSx = {
+      minWidth: CELL_MIN,
+      whiteSpace: "nowrap" as const,
+      fontWeight: 700,
+      fontSize: "0.9rem",
+      bgcolor: "#e8f2fc",
+      borderTop: "2px solid",
+      borderTopColor: "primary.main",
+    };
+    return (
+      <TableRow>
+        <TableCell
+          sx={{
+            ...stickyLeft,
+            bgcolor: "#e8f2fc",
+            color: "primary.dark",
+            fontSize: "0.9rem",
+            borderTop: "2px solid",
+            borderTopColor: "primary.main",
+          }}
+        >
+          Saldo acumulado
+        </TableCell>
+        {values.map((v, i) => (
+          <TableCell
+            key={i}
+            align="right"
+            sx={{ ...cellSx, color: v < 0 ? DESPESA_COLOR : "primary.dark" }}
+          >
+            {formatCell(v)}
+          </TableCell>
+        ))}
+      </TableRow>
+    );
+  }
+
   return (
     <Box>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
@@ -137,7 +175,7 @@ export function ReportPage() {
                 {totalRow("Total despesas", data.totalDespesas, DESPESA_COLOR)}
 
                 {totalRow("Saldo do mes", data.saldo)}
-                {totalRow("Saldo acumulado", data.accumulated)}
+                {accumulatedRow(data.accumulated)}
               </TableBody>
             </Table>
           </TableContainer>
