@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
   Box, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Typography, IconButton, CircularProgress, Alert, Button, Chip, Tooltip,
+  Typography, IconButton, CircularProgress, Alert, Button, Chip, Tooltip, Fade,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -41,6 +41,8 @@ export function ReportPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["grid", from, MONTHS, excluded.join(",")],
     queryFn: () => getGrid(from, MONTHS, excluded),
+    // mantem a tabela anterior enquanto recalcula (sem flash de spinner ao ocultar/exibir)
+    placeholderData: keepPreviousData,
   });
 
   const months = data?.months ?? [];
@@ -205,32 +207,33 @@ export function ReportPage() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+      {/* Toolbar fixa: navegacao de meses + status da simulacao (espaco reservado, sem "pulo") */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, minHeight: 40 }}>
         <IconButton onClick={() => setFrom(shiftMonth(from, -1))} aria-label="Meses anteriores">
           <ChevronLeftIcon />
         </IconButton>
-        <Typography variant="subtitle1" fontWeight={600}>
+        <Typography variant="subtitle1" fontWeight={600} noWrap sx={{ flexGrow: 1, textAlign: "center" }}>
           {rangeLabel}
         </Typography>
         <IconButton onClick={() => setFrom(shiftMonth(from, 1))} aria-label="Proximos meses">
           <ChevronRightIcon />
         </IconButton>
-      </Box>
-
-      {hidden.size > 0 && (
-        <Alert
-          severity="info"
-          icon={<VisibilityOffIcon fontSize="small" />}
-          sx={{ mb: 2, alignItems: "center" }}
-          action={
-            <Button color="inherit" size="small" onClick={() => setHidden(new Set())}>
+        <Fade in={hidden.size > 0}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, ml: 0.5 }}>
+            <Tooltip title={`${hidden.size} lancamento(s) oculto(s) dos totais`}>
+              <Chip
+                size="small"
+                color="info"
+                icon={<VisibilityOffIcon fontSize="small" />}
+                label={hidden.size}
+              />
+            </Tooltip>
+            <Button size="small" onClick={() => setHidden(new Set())}>
               Limpar
             </Button>
-          }
-        >
-          Simulacao: <Chip size="small" label={hidden.size} sx={{ mx: 0.5 }} /> lancamento(s) oculto(s) dos totais.
-        </Alert>
-      )}
+          </Box>
+        </Fade>
+      </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage(error)}</Alert>}
 
