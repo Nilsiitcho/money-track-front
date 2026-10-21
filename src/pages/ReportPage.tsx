@@ -29,6 +29,9 @@ const stickyLeft = {
   minWidth: FIRST_COL,
   maxWidth: FIRST_COL,
   fontWeight: 600,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 };
 
 export function ReportPage() {
@@ -249,7 +252,19 @@ export function ReportPage() {
             </Typography>
           </Box>
           <TableContainer sx={{ maxHeight: "70dvh" }}>
-            <Table stickyHeader size="small">
+            {/* tableLayout fixed + colgroup: larguras travadas (nao mudam ao ocultar/exibir);
+                width 100% + minWidth faz as colunas crescerem em telas largas e rolar nas estreitas */}
+            <Table
+              stickyHeader
+              size="small"
+              sx={{ tableLayout: "fixed", width: "100%", minWidth: FIRST_COL + CELL_MIN * MONTHS }}
+            >
+              <colgroup>
+                <col style={{ width: FIRST_COL }} />
+                {months.map((m) => (
+                  <col key={m} />
+                ))}
+              </colgroup>
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ ...stickyLeft, zIndex: 3, top: 0 }}>Categoria</TableCell>

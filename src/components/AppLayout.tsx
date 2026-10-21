@@ -143,7 +143,8 @@ export function AppLayout() {
 
       <Box component="main" sx={{ flexGrow: 1, width: `calc(100% - ${DRAWER_WIDTH}px)` }}>
         <Toolbar />
-        <Container maxWidth="lg" sx={{ py: 3 }}>
+        {/* Tabela usa largura total (acompanha ultrawide); demais paginas ficam em lg */}
+        <Container maxWidth={location.pathname === "/report" ? false : "lg"} sx={{ py: 3 }}>
           <Outlet />
         </Container>
       </Box>
