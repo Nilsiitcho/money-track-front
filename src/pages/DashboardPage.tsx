@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Box, Card, CardContent, Typography, Grid, CircularProgress, Alert, Stack,
+  Box, Card, CardContent, Typography, CircularProgress, Alert, Stack,
 } from "@mui/material";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
@@ -57,23 +57,26 @@ export function DashboardPage() {
 
       {data && (
         <Stack spacing={2}>
-          <Grid container spacing={1.5}>
-            <Grid item xs={6} md={3}>
-              <SummaryCard title="Receitas" value={data.totals.receitas} color={RECEITA_COLOR} />
-            </Grid>
-            <Grid item xs={6} md={3}>
-              <SummaryCard title="Despesas" value={data.totals.despesas} color={DESPESA_COLOR} />
-            </Grid>
-            <Grid item xs={6} md={3}>
-              <SummaryCard title="Saldo do mes" value={data.totals.saldo} color={saldoColor} />
-            </Grid>
-            <Grid item xs={6} md={3}>
-              <SummaryCard title="Saldo acumulado" value={data.accumulated} color={accColor} />
-            </Grid>
-          </Grid>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
+              gap: 1.5,
+            }}
+          >
+            <SummaryCard title="Receitas" value={data.totals.receitas} color={RECEITA_COLOR} />
+            <SummaryCard title="Despesas" value={data.totals.despesas} color={DESPESA_COLOR} />
+            <SummaryCard title="Saldo do mes" value={data.totals.saldo} color={saldoColor} />
+            <SummaryCard title="Saldo acumulado" value={data.accumulated} color={accColor} />
+          </Box>
 
-          <Grid container spacing={2}>
-           <Grid item xs={12} md={6}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+              gap: 2,
+            }}
+          >
             <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="subtitle2" gutterBottom>
@@ -98,8 +101,6 @@ export function DashboardPage() {
               )}
             </CardContent>
             </Card>
-           </Grid>
-           <Grid item xs={12} md={6}>
             <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="subtitle2" gutterBottom>
@@ -131,8 +132,7 @@ export function DashboardPage() {
               )}
             </CardContent>
             </Card>
-           </Grid>
-          </Grid>
+          </Box>
         </Stack>
       )}
     </Box>
