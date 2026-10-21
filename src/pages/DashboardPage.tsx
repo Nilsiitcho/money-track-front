@@ -41,7 +41,7 @@ export function DashboardPage() {
   const series = (data?.series ?? []).map((p) => ({
     month: formatMonthLabel(p.month),
     Saldo: p.saldo,
-    Acumulado: p.accumulated,
+    Projetado: p.accumulated,
   }));
 
   return (
@@ -67,7 +67,7 @@ export function DashboardPage() {
             <SummaryCard title="Receitas" value={data.totals.receitas} color={RECEITA_COLOR} />
             <SummaryCard title="Despesas" value={data.totals.despesas} color={DESPESA_COLOR} />
             <SummaryCard title="Saldo do mes" value={data.totals.saldo} color={saldoColor} />
-            <SummaryCard title="Saldo acumulado" value={data.accumulated} color={accColor} />
+            <SummaryCard title="Saldo projetado" value={data.accumulated} color={accColor} />
           </Box>
 
           <Box
@@ -95,7 +95,7 @@ export function DashboardPage() {
                     <Tooltip formatter={(v: number) => formatMoney(v)} />
                     <Legend />
                     <Line type="monotone" dataKey="Saldo" stroke={RECEITA_COLOR} dot={false} />
-                    <Line type="monotone" dataKey="Acumulado" stroke="#1e88e5" dot={false} />
+                    <Line type="monotone" dataKey="Projetado" stroke="#1e88e5" dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               )}

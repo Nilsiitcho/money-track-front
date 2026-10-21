@@ -11,6 +11,7 @@ import ChevronRightIcon2 from "@mui/icons-material/KeyboardArrowRight";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import SavingsIcon from "@mui/icons-material/Savings";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { getGrid } from "../api/endpoints";
 import { errorMessage } from "../api/client";
 import { currentMonth, formatCell, formatMonthShort, shiftMonth } from "../lib/format";
@@ -327,7 +328,12 @@ export function ReportPage() {
             borderTopColor: "primary.main",
           }}
         >
-          Saldo acumulado
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            Saldo Projetado
+            <Tooltip title="Soma dos saldos mensais desde o primeiro lancamento. Comeca do zero e os meses futuros sao projecao com base nos lancamentos cadastrados.">
+              <InfoOutlinedIcon fontSize="small" sx={{ opacity: 0.7 }} />
+            </Tooltip>
+          </Box>
         </TableCell>
         {values.map((v, i) => (
           <TableCell
