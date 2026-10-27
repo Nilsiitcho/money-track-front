@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import {
   Box, Card, CardContent, Typography, CircularProgress, Alert, Stack,
+  LinearProgress, Button,
 } from "@mui/material";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
   PieChart, Pie, Cell,
 } from "recharts";
 import { MonthSelector } from "../components/MonthSelector";
-import { getDashboard } from "../api/endpoints";
+import { getDashboard, getReservaStatus } from "../api/endpoints";
 import { errorMessage } from "../api/client";
 import { currentMonth, formatMoney, formatMonthLabel } from "../lib/format";
 import { CHART_COLORS, DESPESA_COLOR, RECEITA_COLOR } from "../theme";
@@ -31,6 +33,96 @@ function SummaryCard({ title, value, color }: { title: string; value: number; co
         <Typography variant="h6" fontWeight={700} sx={{ color }}>
           {formatMoney(value)}
         </Typography>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary" display="block">
+        {label}
+      </Typography>
+      <Typography
+        variant="body1"
+        sx={{ fontWeight: 700, whiteSpace: "nowrap", color: highlight ? "primary.main" : undefined }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  );
+}
+
+// Card principal: orcamento mensal (Reserva) — disponivel, gasto e diario recomendado.
+function BudgetCard({ month }: { month: string }) {
+  const navigate = useNavigate();
+  const isCurrent = month === currentMonth();
+  const { data } = useQuery({
+    queryKey: ["reservaStatus", month],
+    queryFn: () => getReservaStatus(isCurrent ? undefined : `${month}-01`),
+  });
+  if (!data) return null;
+
+  const { reserva, spentMonth, remainingMonth, dailyAvailable, daysRemaining } = data;
+  const hasBudget = reserva > 0;
+  const pct = hasBudget ? Math.min(100, Math.max(0, (spentMonth / reserva) * 100)) : 0;
+  const over = remainingMonth < 0;
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="subtitle2" color="text.secondary">
+            Orcamento do mes (Reserva)
+          </Typography>
+          <Button size="small" variant="text" onClick={() => navigate("/reserva")}>
+            Ajustar
+          </Button>
+        </Stack>
+
+        {!hasBudget ? (
+          <Stack spacing={1.5} alignItems="flex-start" sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Defina sua reserva de gastos para acompanhar o orcamento e o gasto diario.
+            </Typography>
+            <Button onClick={() => navigate("/reserva")}>Definir reserva</Button>
+          </Stack>
+        ) : (
+          <>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+              Disponivel
+            </Typography>
+            <Typography
+              variant="h4"
+              sx={{ fontWeight: 800, lineHeight: 1.1, color: over ? DESPESA_COLOR : "primary.main" }}
+            >
+              {formatMoney(remainingMonth)}
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={pct}
+              color={over ? "error" : "primary"}
+              sx={{ height: 10, borderRadius: 5, my: 1.5 }}
+            />
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(4, 1fr)" },
+                gap: 1.5,
+              }}
+            >
+              <Stat label="Orcamento" value={formatMoney(reserva)} />
+              <Stat label="Gasto" value={formatMoney(spentMonth)} />
+              <Stat
+                label={isCurrent ? "Diario recomendado" : "Diario"}
+                value={formatMoney(dailyAvailable)}
+                highlight
+              />
+              {isCurrent && <Stat label="Dias restantes" value={String(daysRemaining)} />}
+            </Box>
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -65,6 +157,8 @@ export function DashboardPage() {
 
       {data && (
         <Stack spacing={2}>
+          <BudgetCard month={month} />
+
           <Box
             sx={{
               display: "grid",
