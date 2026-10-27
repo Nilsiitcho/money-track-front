@@ -19,3 +19,6 @@ yarn-error.log*
 
 # Wrangler cache
 .wrangler/
+
+# vite-plugin-pwa dev output
+dev-dist/
