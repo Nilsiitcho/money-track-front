@@ -26,6 +26,13 @@ const NAV = [
   { label: "Config", icon: <SettingsIcon />, path: "/config" },
 ];
 
+// Mobile foca em lancar gasto rapido (FAB) + ver Painel e Lancamentos.
+// Gestao (Tabela, Reserva, Categorias, Config) fica no desktop.
+const MOBILE_NAV = [
+  { label: "Painel", icon: <DashboardIcon />, path: "/" },
+  { label: "Lancamentos", icon: <ReceiptLongIcon />, path: "/entries" },
+];
+
 const DRAWER_WIDTH = 240;
 
 export function AppLayout() {
@@ -44,11 +51,11 @@ export function AppLayout() {
     </IconButton>
   );
 
-  // ---------- Mobile: bottom nav + FAB ----------
+  // ---------- Mobile: gasto rapido (FAB central) + Painel/Lancamentos ----------
   if (!isDesktop) {
-    const currentIndex = NAV.findIndex((n) => n.path === location.pathname);
+    const currentIndex = MOBILE_NAV.findIndex((n) => n.path === location.pathname);
     return (
-      <Box sx={{ pb: 9, minHeight: "100dvh" }}>
+      <Box sx={{ pb: "calc(72px + env(safe-area-inset-bottom))", minHeight: "100dvh" }}>
         <AppBar position="sticky" elevation={1}>
           <Toolbar>
             <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
@@ -62,23 +69,51 @@ export function AppLayout() {
           <Outlet />
         </Container>
 
+        {/* Acao principal no mobile: lancar gasto rapido */}
         <Fab
           color="primary"
-          aria-label="Gasto rapido"
+          variant="extended"
+          aria-label="Lancar gasto rapido"
           onClick={() => setAddOpen(true)}
-          sx={{ position: "fixed", bottom: 72, right: 16, zIndex: (t) => t.zIndex.appBar + 1 }}
+          sx={{
+            position: "fixed",
+            left: "50%",
+            transform: "translateX(-50%)",
+            bottom: "calc(env(safe-area-inset-bottom) + 18px)",
+            zIndex: (t) => t.zIndex.appBar + 2,
+            px: 3,
+            boxShadow: 6,
+          }}
         >
-          <AddIcon />
+          <AddIcon sx={{ mr: 1 }} />
+          Lancar
         </Fab>
 
-        <Paper sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 10 }} elevation={3}>
+        <Paper
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            pb: "env(safe-area-inset-bottom)",
+          }}
+          elevation={3}
+        >
           <BottomNavigation
             showLabels
-            value={currentIndex === -1 ? 0 : currentIndex}
-            onChange={(_, idx) => navigate(NAV[idx].path)}
+            value={currentIndex === -1 ? false : currentIndex}
+            onChange={(_, idx) => navigate(MOBILE_NAV[idx].path)}
+            // Itens nas pontas; centro livre para o FAB "Lancar".
+            sx={{ justifyContent: "space-between", px: 3 }}
           >
-            {NAV.map((n) => (
-              <BottomNavigationAction key={n.path} label={n.label} icon={n.icon} />
+            {MOBILE_NAV.map((n) => (
+              <BottomNavigationAction
+                key={n.path}
+                label={n.label}
+                icon={n.icon}
+                sx={{ maxWidth: 120, flexGrow: 0 }}
+              />
             ))}
           </BottomNavigation>
         </Paper>
