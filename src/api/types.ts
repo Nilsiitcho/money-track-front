@@ -1,6 +1,7 @@
 export type EntryType = "RECEITA" | "DESPESA";
 export type Recurrence = "UNICO" | "FIXO" | "PARCELADO";
 export type EditScope = "ONLY_THIS" | "THIS_AND_FUTURE" | "ALL";
+export type ResetScope = "ENTRIES" | "ENTRIES_AND_CATEGORIES";
 
 export interface LoginResponse {
   token: string;

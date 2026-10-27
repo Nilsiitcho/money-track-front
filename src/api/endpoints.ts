@@ -11,6 +11,7 @@ import type {
   Occurrence,
   Reserva,
   ReservaStatus,
+  ResetScope,
 } from "./types";
 
 // ---- Auth ----
@@ -120,4 +121,9 @@ export async function getReservaStatus(date?: string): Promise<ReservaStatus> {
 export async function createGastoRapido(amount: number, date?: string, description?: string): Promise<ReservaStatus> {
   const { data } = await api.post<ReservaStatus>("/api/reserva/gastos", { amount, date: date ?? null, description: description ?? null });
   return data;
+}
+
+// ---- Configuracoes / Reset ----
+export async function resetData(scope: ResetScope, password: string): Promise<void> {
+  await api.post("/api/admin/reset", { scope, password });
 }

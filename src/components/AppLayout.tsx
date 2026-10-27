@@ -11,6 +11,7 @@ import TableChartIcon from "@mui/icons-material/TableChart";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CategoryIcon from "@mui/icons-material/Category";
 import SavingsIcon from "@mui/icons-material/Savings";
+import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AddIcon from "@mui/icons-material/Add";
 import { useAuth } from "../auth/AuthContext";
@@ -22,6 +23,7 @@ const NAV = [
   { label: "Reserva", icon: <SavingsIcon />, path: "/reserva" },
   { label: "Lancamentos", icon: <ReceiptLongIcon />, path: "/entries" },
   { label: "Categorias", icon: <CategoryIcon />, path: "/categories" },
+  { label: "Config", icon: <SettingsIcon />, path: "/config" },
 ];
 
 const DRAWER_WIDTH = 240;

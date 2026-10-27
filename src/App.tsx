@@ -7,6 +7,7 @@ import { EntriesPage } from "./pages/EntriesPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { ReportPage } from "./pages/ReportPage";
 import { ReservaPage } from "./pages/ReservaPage";
+import { ConfigPage } from "./pages/ConfigPage";
 
 export function App() {
   return (
@@ -19,6 +20,7 @@ export function App() {
           <Route path="/reserva" element={<ReservaPage />} />
           <Route path="/entries" element={<EntriesPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/config" element={<ConfigPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
