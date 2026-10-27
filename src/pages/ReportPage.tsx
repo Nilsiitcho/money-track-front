@@ -26,8 +26,12 @@ const CELL_MIN = 78;
 // Alturas fixas para empilhar os totalizadores sticky no topo (header + 4 linhas).
 const HEAD_H = 37;
 const SUM_H = 37;
-const NEG_BG = "#fbe3cf";
-const REC_BG = "#e1efe3";
+// Realces e faixas (tema grafite escuro): tints translucidos p/ nao brigar com o texto claro.
+const NEG_BG = "rgba(240,87,92,0.22)"; // celula de saldo negativo
+const REC_BG = "rgba(63,191,106,0.20)"; // celula de recuperacao (volta positivo)
+const SECTION_BG = "#2b3139"; // faixa de secao (RECEITAS/DESPESAS)
+const SUM_BG = "#232931"; // faixa dos totalizadores
+const PROJ_BG = "rgba(255,106,26,0.16)"; // faixa do Saldo Projetado (tint laranja)
 
 // Celula da primeira coluna: fixa ao rolar horizontalmente
 const stickyLeft = {
@@ -231,7 +235,7 @@ export function ReportPage() {
 
   // Linha do Excedente de Reserva: destaque mais forte (vermelho), nao ocultavel.
   function excedenteRow(r: GridCategoryRow) {
-    const accent = { bgcolor: "rgba(198,40,40,0.14)" };
+    const accent = { bgcolor: "rgba(240,87,92,0.20)" };
     return (
       <TableRow key={`c-${r.categoryId}`}>
         <TableCell
@@ -263,7 +267,7 @@ export function ReportPage() {
     const entry = r.entries[0];
     const isHidden = entry ? hidden.has(entry.entryId) : false;
     const values = entry ? entry.values : r.values;
-    const accent = { bgcolor: "rgba(198,40,40,0.06)" };
+    const accent = { bgcolor: "rgba(240,87,92,0.10)" };
     return (
       <TableRow key={`c-${r.categoryId}`} hover sx={accent}>
         <TableCell
@@ -302,8 +306,8 @@ export function ReportPage() {
   function sectionRow(label: string) {
     return (
       <TableRow>
-        <TableCell sx={{ ...stickyLeft, bgcolor: "grey.100" }}>{label}</TableCell>
-        <TableCell colSpan={MONTHS} sx={{ bgcolor: "grey.100" }} />
+        <TableCell sx={{ ...stickyLeft, bgcolor: SECTION_BG, fontWeight: 700 }}>{label}</TableCell>
+        <TableCell colSpan={MONTHS} sx={{ bgcolor: SECTION_BG }} />
       </TableRow>
     );
   }
@@ -321,7 +325,7 @@ export function ReportPage() {
         <TableCell
           sx={{
             ...stickyLeft, top, zIndex: 4, bgcolor: bg, height: SUM_H, fontWeight: 700,
-            color: projected ? "primary.dark" : undefined, ...borderSx,
+            color: projected ? "primary.light" : undefined, ...borderSx,
           }}
         >
           {projected ? (
@@ -449,16 +453,16 @@ export function ReportPage() {
                 <TableRow>
                   <TableCell sx={{ ...stickyLeft, zIndex: 5, top: 0, height: HEAD_H }}>Categoria</TableCell>
                   {months.map((m) => (
-                    <TableCell key={m} align="right" sx={{ top: 0, height: HEAD_H, minWidth: CELL_MIN, whiteSpace: "nowrap", fontWeight: 600, textTransform: "capitalize" }}>
+                    <TableCell key={m} align="right" sx={{ top: 0, height: HEAD_H, minWidth: CELL_MIN, whiteSpace: "nowrap", fontWeight: 600, textTransform: "capitalize", bgcolor: "background.paper" }}>
                       {formatMonthShort(m)}
                     </TableCell>
                   ))}
                 </TableRow>
                 {/* Totalizadores fixos no topo (empilhados abaixo do header de meses) */}
-                {summaryRow("Total receitas", data.totalReceitas, HEAD_H, "grey.50", RECEITA_COLOR)}
-                {summaryRow("Total despesas", data.totalDespesas, HEAD_H + SUM_H, "grey.50", DESPESA_COLOR)}
-                {summaryRow("Saldo do mes", data.saldo, HEAD_H + SUM_H * 2, "grey.100")}
-                {summaryRow("Saldo Projetado", data.accumulated, HEAD_H + SUM_H * 3, "#e8f2fc", undefined, true)}
+                {summaryRow("Total receitas", data.totalReceitas, HEAD_H, SUM_BG, RECEITA_COLOR)}
+                {summaryRow("Total despesas", data.totalDespesas, HEAD_H + SUM_H, SUM_BG, DESPESA_COLOR)}
+                {summaryRow("Saldo do mes", data.saldo, HEAD_H + SUM_H * 2, SUM_BG)}
+                {summaryRow("Saldo Projetado", data.accumulated, HEAD_H + SUM_H * 3, PROJ_BG, undefined, true)}
               </TableHead>
               <TableBody>
                 {sectionRow("RECEITAS")}

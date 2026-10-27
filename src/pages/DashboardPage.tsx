@@ -13,6 +13,14 @@ import { errorMessage } from "../api/client";
 import { currentMonth, formatMoney, formatMonthLabel } from "../lib/format";
 import { CHART_COLORS, DESPESA_COLOR, RECEITA_COLOR } from "../theme";
 
+// Tooltip dos graficos no tema grafite.
+const CHART_TOOLTIP = {
+  background: "#1f242b",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: 8,
+  color: "#e6e8eb",
+} as const;
+
 function SummaryCard({ title, value, color }: { title: string; value: number; color?: string }) {
   return (
     <Card>
@@ -89,13 +97,13 @@ export function DashboardPage() {
               ) : (
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={series} margin={{ left: -10, right: 8, top: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" fontSize={11} />
-                    <YAxis fontSize={11} width={48} />
-                    <Tooltip formatter={(v: number) => formatMoney(v)} />
-                    <Legend />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                    <XAxis dataKey="month" tick={{ fill: "#9aa1a9", fontSize: 11 }} stroke="rgba(255,255,255,0.15)" />
+                    <YAxis width={48} tick={{ fill: "#9aa1a9", fontSize: 11 }} stroke="rgba(255,255,255,0.15)" />
+                    <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={CHART_TOOLTIP} labelStyle={{ color: "#e6e8eb" }} itemStyle={{ color: "#e6e8eb" }} />
+                    <Legend wrapperStyle={{ color: "#9aa1a9", fontSize: 12 }} />
                     <Line type="monotone" dataKey="Saldo" stroke={RECEITA_COLOR} dot={false} />
-                    <Line type="monotone" dataKey="Projetado" stroke="#1e88e5" dot={false} />
+                    <Line type="monotone" dataKey="Projetado" stroke="#ff6a1a" dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -126,7 +134,7 @@ export function DashboardPage() {
                         <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => formatMoney(v)} />
+                    <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={CHART_TOOLTIP} labelStyle={{ color: "#e6e8eb" }} itemStyle={{ color: "#e6e8eb" }} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
