@@ -1,0 +1,11 @@
+{
+  // Worker de assets estaticos (SPA). Serve a pasta dist do build do Vite.
+  // Sem "main": Worker apenas de assets, sem codigo de servidor.
+  "name": "money-track-front",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist",
+    // Rotas de cliente (/, /report, ...) caem no index.html (SPA).
+    "not_found_handling": "single-page-application"
+  }
+}

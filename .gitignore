@@ -16,3 +16,6 @@ yarn-error.log*
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Wrangler cache
+.wrangler/
