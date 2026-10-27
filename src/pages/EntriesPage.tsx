@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Box, Card, CardContent, Stack, TextField, MenuItem, Typography, IconButton,
   List, ListItem, ListItemText, Chip, CircularProgress, Alert, Divider, Button,
+  Tooltip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { MonthSelector } from "../components/MonthSelector";
 import { EntryFormDialog } from "../components/EntryFormDialog";
 import { ScopeDialog } from "../components/ScopeDialog";
@@ -23,6 +26,16 @@ const RECURRENCE_LABEL: Record<string, string> = {
   PARCELADO: "Parcelado",
 };
 
+type SortBy = "inserted" | "amount" | "description" | "category" | "type";
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: "inserted", label: "Insercao" },
+  { value: "amount", label: "Valor" },
+  { value: "description", label: "Descricao" },
+  { value: "category", label: "Categoria" },
+  { value: "type", label: "Tipo" },
+];
+
 export function EntriesPage() {
   const queryClient = useQueryClient();
   const [month, setMonth] = useState(currentMonth());
@@ -30,6 +43,9 @@ export function EntriesPage() {
   const [categoryId, setCategoryId] = useState("");
   const [recurrence, setRecurrence] = useState("");
   const [q, setQ] = useState("");
+  // Padrao: ordem de insercao, mais recente primeiro (entryId desc).
+  const [sortBy, setSortBy] = useState<SortBy>("inserted");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<{ entryId: number; occurrenceMonth: string } | null>(null);
@@ -50,6 +66,36 @@ export function EntriesPage() {
     queryKey: ["entries", filters],
     queryFn: () => listEntries(filters),
   });
+
+  const sorted = useMemo(() => {
+    const arr = [...(data ?? [])];
+    const dir = sortDir === "asc" ? 1 : -1;
+    arr.sort((a, b) => {
+      let base: number;
+      switch (sortBy) {
+        case "amount":
+          base = a.amount - b.amount;
+          break;
+        case "description":
+          base = a.description.localeCompare(b.description, "pt", { sensitivity: "base" });
+          break;
+        case "category":
+          base = (a.categoryName ?? "").localeCompare(b.categoryName ?? "", "pt", { sensitivity: "base" });
+          break;
+        case "type":
+          base = a.type.localeCompare(b.type);
+          break;
+        case "inserted":
+        default:
+          base = a.entryId - b.entryId;
+          break;
+      }
+      // Desempate estavel por insercao.
+      if (base === 0) base = a.entryId - b.entryId;
+      return base * dir;
+    });
+    return arr;
+  }, [data, sortBy, sortDir]);
 
   async function runDelete(occ: Occurrence, scope?: EditScope) {
     setActionError(null);
@@ -82,6 +128,30 @@ export function EntriesPage() {
       <Card sx={{ mb: 2 }}>
         <CardContent>
           <Stack spacing={1.5}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <TextField
+                select
+                label="Ordenar por"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortBy)}
+                size="small"
+                sx={{ flexGrow: 1 }}
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <MenuItem key={o.value} value={o.value}>
+                    {o.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Tooltip title={sortDir === "asc" ? "Crescente" : "Decrescente"}>
+                <IconButton
+                  aria-label="Inverter ordem"
+                  onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+                >
+                  {sortDir === "asc" ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
             <Stack direction="row" spacing={1}>
               <TextField select label="Tipo" value={type} onChange={(e) => setType(e.target.value)} size="small">
                 <MenuItem value="">Todos</MenuItem>
@@ -134,9 +204,9 @@ export function EntriesPage() {
         </Box>
       ) : (
         <Card>
-          {data && data.length > 0 ? (
+          {sorted.length > 0 ? (
             <List disablePadding>
-              {data.map((occ, i) => (
+              {sorted.map((occ, i) => (
                 <Box key={`${occ.entryId}-${occ.month}`}>
                   {i > 0 && <Divider component="li" />}
                   <ListItem
