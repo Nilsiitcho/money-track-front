@@ -4,12 +4,12 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, Typography,
   Box, Alert, Divider, TextField, ToggleButton, ToggleButtonGroup,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import dayjs, { type Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { MoneyField } from "./MoneyField";
+import { MonthField } from "./MonthField";
 import { getReservaStatus, createGastoRapido } from "../api/endpoints";
 import { errorMessage } from "../api/client";
-import { formatMoney, formatMonthLong } from "../lib/format";
+import { currentMonth, formatMoney, formatMonthLong, shiftMonth } from "../lib/format";
 import { DESPESA_COLOR, RECEITA_COLOR } from "../theme";
 
 interface Props {
@@ -30,25 +30,26 @@ function Line({ label, value, color }: { label: string; value: string; color?: s
 export function QuickEntryDialog({ open, onClose, onSaved }: Props) {
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState(0);
-  const [date, setDate] = useState<Dayjs>(dayjs());
+  const [month, setMonth] = useState(currentMonth());
   const [description, setDescription] = useState("");
-  // Credito (padrao): entra no mes seguinte. Debito: conta no mes da compra.
+  // Credito (padrao): entra no mes seguinte. Debito: conta no proprio mes.
   const [credit, setCredit] = useState(true);
 
-  const dateStr = date.format("YYYY-MM-DD");
-  // Mes em que o gasto cai: credito = mes seguinte; debito = mes da data.
-  const targetDate = credit ? date.add(1, "month").startOf("month") : date;
-  const targetDateStr = targetDate.format("YYYY-MM-DD");
-  const targetMonthStr = targetDate.format("YYYY-MM");
+  // Mes em que o gasto cai: credito = mes seguinte; debito = mes informado.
+  const targetMonthStr = credit ? shiftMonth(month, 1) : month;
+  // Para o painel: no mes atual usa hoje (dias restantes reais), senao dia 1.
+  const statusDate = targetMonthStr === currentMonth()
+    ? dayjs().format("YYYY-MM-DD")
+    : `${targetMonthStr}-01`;
 
   const statusQuery = useQuery({
-    queryKey: ["reserva-status", targetDateStr],
-    queryFn: () => getReservaStatus(targetDateStr),
+    queryKey: ["reserva-status", statusDate],
+    queryFn: () => getReservaStatus(statusDate),
     enabled: open,
   });
 
   const mutation = useMutation({
-    mutationFn: () => createGastoRapido(amount, dateStr, description || undefined, credit),
+    mutationFn: () => createGastoRapido(amount, month, description || undefined, credit),
     onSuccess: () => {
       queryClient.invalidateQueries();
       onSaved?.();
@@ -58,7 +59,7 @@ export function QuickEntryDialog({ open, onClose, onSaved }: Props) {
 
   function handleClose() {
     setAmount(0);
-    setDate(dayjs());
+    setMonth(currentMonth());
     setDescription("");
     setCredit(true);
     onClose();
@@ -76,13 +77,7 @@ export function QuickEntryDialog({ open, onClose, onSaved }: Props) {
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <MoneyField label="Valor" value={amount} onChange={setAmount} />
-          <DatePicker
-            label="Data"
-            value={date}
-            onChange={(d) => d && setDate(d)}
-            format="DD/MM/YYYY"
-            slotProps={{ textField: { fullWidth: true } }}
-          />
+          <MonthField label="Mes" value={month} onChange={(m) => m && setMonth(m)} />
           <TextField
             label="Descricao (opcional)"
             value={description}

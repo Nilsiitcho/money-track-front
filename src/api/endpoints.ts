@@ -120,13 +120,13 @@ export async function getReservaStatus(date?: string): Promise<ReservaStatus> {
 
 export async function createGastoRapido(
   amount: number,
-  date?: string,
+  month?: string,
   description?: string,
   credit = true,
 ): Promise<ReservaStatus> {
   const { data } = await api.post<ReservaStatus>("/api/reserva/gastos", {
     amount,
-    date: date ?? null,
+    month: month ?? null,
     description: description ?? null,
     credit,
   });
