@@ -6,8 +6,11 @@ import {
   DialogContent, DialogActions, TextField,
 } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import { resetData } from "../api/endpoints";
+import DownloadIcon from "@mui/icons-material/Download";
+import { resetData, exportEntriesCsv } from "../api/endpoints";
 import { errorMessage } from "../api/client";
+import { currentMonth, shiftMonth } from "../lib/format";
+import { MonthField } from "../components/MonthField";
 import type { ResetScope } from "../api/types";
 
 const SCOPE_LABEL: Record<ResetScope, string> = {
@@ -23,6 +26,33 @@ export function ConfigPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Exportacao CSV por periodo (padrao: ultimos 12 meses).
+  const [fromMonth, setFromMonth] = useState(shiftMonth(currentMonth(), -11));
+  const [toMonth, setToMonth] = useState(currentMonth());
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const rangeInvalid = fromMonth > toMonth;
+
+  async function doExport() {
+    setExportError(null);
+    setExporting(true);
+    try {
+      const blob = await exportEntriesCsv(fromMonth, toMonth);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `money-track_${fromMonth}_a_${toMonth}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setExportError(errorMessage(err, "Nao foi possivel exportar."));
+    } finally {
+      setExporting(false);
+    }
+  }
 
   function openConfirm() {
     setPassword("");
@@ -65,6 +95,44 @@ export function ConfigPage() {
           {success}
         </Alert>
       )}
+
+      <Card sx={{ mb: 2 }}>
+        <CardContent>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+            <DownloadIcon color="primary" />
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              Exportar dados (CSV)
+            </Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Baixa os lancamentos do periodo em CSV (uma linha por lancamento de cada
+            mes). Bom para analisar em planilha ou colar numa IA.
+          </Typography>
+
+          {exportError && <Alert severity="error" sx={{ mb: 2 }}>{exportError}</Alert>}
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
+            <MonthField label="De" value={fromMonth} onChange={(m) => m && setFromMonth(m)} />
+            <MonthField
+              label="Ate"
+              value={toMonth}
+              minMonth={fromMonth}
+              onChange={(m) => m && setToMonth(m)}
+              error={rangeInvalid}
+              helperText={rangeInvalid ? "Mes final anterior ao inicial" : undefined}
+            />
+          </Stack>
+
+          <Button
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            onClick={doExport}
+            disabled={exporting || rangeInvalid}
+          >
+            {exporting ? "Gerando..." : "Baixar CSV"}
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent>

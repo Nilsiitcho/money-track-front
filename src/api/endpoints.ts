@@ -137,3 +137,12 @@ export async function createGastoRapido(
 export async function resetData(scope: ResetScope, password: string): Promise<void> {
   await api.post("/api/admin/reset", { scope, password });
 }
+
+// ---- Exportacao ----
+export async function exportEntriesCsv(from: string, to: string): Promise<Blob> {
+  const { data } = await api.get("/api/export/entries.csv", {
+    params: { from, to },
+    responseType: "blob",
+  });
+  return data as Blob;
+}
