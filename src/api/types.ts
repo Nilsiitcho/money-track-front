@@ -27,6 +27,7 @@ export interface Occurrence {
   recurrence: Recurrence;
   installmentLabel: string | null;
   scoped: boolean;
+  quickEntry: boolean; // gasto rapido (UNICO na categoria Reserva)
 }
 
 export interface EntryRule {

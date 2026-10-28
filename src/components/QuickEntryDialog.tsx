@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, Typography,
-  Box, Alert, Divider, TextField,
+  Box, Alert, Divider, TextField, ToggleButton, ToggleButtonGroup,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
 import { MoneyField } from "./MoneyField";
 import { getReservaStatus, createGastoRapido } from "../api/endpoints";
 import { errorMessage } from "../api/client";
-import { formatMoney } from "../lib/format";
+import { formatMoney, formatMonthLong } from "../lib/format";
 import { DESPESA_COLOR, RECEITA_COLOR } from "../theme";
 
 interface Props {
@@ -32,16 +32,23 @@ export function QuickEntryDialog({ open, onClose, onSaved }: Props) {
   const [amount, setAmount] = useState(0);
   const [date, setDate] = useState<Dayjs>(dayjs());
   const [description, setDescription] = useState("");
+  // Credito (padrao): entra no mes seguinte. Debito: conta no mes da compra.
+  const [credit, setCredit] = useState(true);
 
   const dateStr = date.format("YYYY-MM-DD");
+  // Mes em que o gasto cai: credito = mes seguinte; debito = mes da data.
+  const targetDate = credit ? date.add(1, "month").startOf("month") : date;
+  const targetDateStr = targetDate.format("YYYY-MM-DD");
+  const targetMonthStr = targetDate.format("YYYY-MM");
+
   const statusQuery = useQuery({
-    queryKey: ["reserva-status", dateStr],
-    queryFn: () => getReservaStatus(dateStr),
+    queryKey: ["reserva-status", targetDateStr],
+    queryFn: () => getReservaStatus(targetDateStr),
     enabled: open,
   });
 
   const mutation = useMutation({
-    mutationFn: () => createGastoRapido(amount, dateStr, description || undefined),
+    mutationFn: () => createGastoRapido(amount, dateStr, description || undefined, credit),
     onSuccess: () => {
       queryClient.invalidateQueries();
       onSaved?.();
@@ -53,6 +60,7 @@ export function QuickEntryDialog({ open, onClose, onSaved }: Props) {
     setAmount(0);
     setDate(dayjs());
     setDescription("");
+    setCredit(true);
     onClose();
   }
 
@@ -81,6 +89,24 @@ export function QuickEntryDialog({ open, onClose, onSaved }: Props) {
             onChange={(e) => setDescription(e.target.value)}
             size="small"
           />
+
+          <Box>
+            <ToggleButtonGroup
+              value={credit ? "credito" : "debito"}
+              exclusive
+              fullWidth
+              size="small"
+              onChange={(_, v) => { if (v) setCredit(v === "credito"); }}
+            >
+              <ToggleButton value="credito">Credito</ToggleButton>
+              <ToggleButton value="debito">Debito</ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+              {credit
+                ? `Credito: entra na reserva de ${formatMonthLong(targetMonthStr)}.`
+                : `Debito: conta na reserva de ${formatMonthLong(targetMonthStr)}.`}
+            </Typography>
+          </Box>
 
           <Divider />
 

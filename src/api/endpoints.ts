@@ -118,8 +118,18 @@ export async function getReservaStatus(date?: string): Promise<ReservaStatus> {
   return data;
 }
 
-export async function createGastoRapido(amount: number, date?: string, description?: string): Promise<ReservaStatus> {
-  const { data } = await api.post<ReservaStatus>("/api/reserva/gastos", { amount, date: date ?? null, description: description ?? null });
+export async function createGastoRapido(
+  amount: number,
+  date?: string,
+  description?: string,
+  credit = true,
+): Promise<ReservaStatus> {
+  const { data } = await api.post<ReservaStatus>("/api/reserva/gastos", {
+    amount,
+    date: date ?? null,
+    description: description ?? null,
+    credit,
+  });
   return data;
 }
 

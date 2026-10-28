@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Box, Card, CardContent, Stack, TextField, MenuItem, Typography, IconButton,
   List, ListItem, ListItemText, Chip, CircularProgress, Alert, Divider, Button,
-  Tooltip,
+  Tooltip, FormControlLabel, Checkbox,
 } from "@mui/material";
+import BoltIcon from "@mui/icons-material/Bolt";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -43,6 +44,8 @@ export function EntriesPage() {
   const [categoryId, setCategoryId] = useState("");
   const [recurrence, setRecurrence] = useState("");
   const [q, setQ] = useState("");
+  // Mostra apenas os gastos rapidos (lancamentos da reserva).
+  const [onlyQuick, setOnlyQuick] = useState(false);
   // Padrao: ordem de insercao, mais recente primeiro (entryId desc).
   const [sortBy, setSortBy] = useState<SortBy>("inserted");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -68,7 +71,8 @@ export function EntriesPage() {
   });
 
   const sorted = useMemo(() => {
-    const arr = [...(data ?? [])];
+    const src = onlyQuick ? (data ?? []).filter((o) => o.quickEntry) : (data ?? []);
+    const arr = [...src];
     const dir = sortDir === "asc" ? 1 : -1;
     arr.sort((a, b) => {
       let base: number;
@@ -95,7 +99,7 @@ export function EntriesPage() {
       return base * dir;
     });
     return arr;
-  }, [data, sortBy, sortDir]);
+  }, [data, sortBy, sortDir, onlyQuick]);
 
   async function runDelete(occ: Occurrence, scope?: EditScope) {
     setActionError(null);
@@ -191,6 +195,16 @@ export function EntriesPage() {
               onChange={(e) => setQ(e.target.value)}
               size="small"
             />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={onlyQuick}
+                  onChange={(e) => setOnlyQuick(e.target.checked)}
+                  size="small"
+                />
+              }
+              label="Apenas gastos rapidos"
+            />
           </Stack>
         </CardContent>
       </Card>
@@ -233,7 +247,16 @@ export function EntriesPage() {
                       }
                       secondary={
                         <Stack direction="row" spacing={0.5} mt={0.5} flexWrap="wrap" useFlexGap>
-                          <Chip size="small" label={occ.categoryName ?? "Sem categoria"} />
+                          {occ.quickEntry ? (
+                            <Chip
+                              size="small"
+                              color="primary"
+                              icon={<BoltIcon />}
+                              label="Gasto rapido"
+                            />
+                          ) : (
+                            <Chip size="small" label={occ.categoryName ?? "Sem categoria"} />
+                          )}
                           <Chip size="small" variant="outlined" label={RECURRENCE_LABEL[occ.recurrence]} />
                           {occ.installmentLabel && (
                             <Chip size="small" variant="outlined" label={`Parcela ${occ.installmentLabel}`} />
