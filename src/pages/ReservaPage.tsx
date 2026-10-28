@@ -2,19 +2,23 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Box, Card, CardContent, Typography, Button, Stack, Alert, CircularProgress, Divider,
+  Checkbox, FormControlLabel,
 } from "@mui/material";
 import SavingsIcon from "@mui/icons-material/Savings";
 import { MonthSelector } from "../components/MonthSelector";
 import { MoneyField } from "../components/MoneyField";
 import { getReserva, setReserva } from "../api/endpoints";
 import { errorMessage } from "../api/client";
-import { currentMonth, formatMoney, formatMonthLong } from "../lib/format";
+import { currentMonth, formatMoney, formatMonthLong, shiftMonth } from "../lib/format";
 import { DESPESA_COLOR } from "../theme";
 
 export function ReservaPage() {
   const queryClient = useQueryClient();
   const [month, setMonth] = useState(currentMonth());
   const [draft, setDraft] = useState(0);
+  // Se marcado, a reserva passa a valer a partir do proximo mes (ignora o mes atual).
+  const [fromNextMonth, setFromNextMonth] = useState(false);
+  const nextMonth = shiftMonth(currentMonth(), 1);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["reserva", month],
@@ -27,14 +31,16 @@ export function ReservaPage() {
   }, [data?.amount]);
 
   const mutation = useMutation({
-    mutationFn: () => setReserva(draft, month),
+    mutationFn: () => setReserva(draft, month, fromNextMonth ? nextMonth : undefined),
     onSuccess: (res) => {
       queryClient.setQueryData(["reserva", month], res);
       queryClient.invalidateQueries();
+      setFromNextMonth(false);
     },
   });
 
   const dirty = data != null && draft !== data.amount;
+  const canSave = dirty || fromNextMonth;
 
   return (
     <Box>
@@ -77,17 +83,37 @@ export function ReservaPage() {
               </Typography>
               <Stack spacing={2}>
                 <MoneyField label="Valor da reserva" value={draft} onChange={setDraft} />
+                <Box>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={fromNextMonth}
+                        onChange={(e) => setFromNextMonth(e.target.checked)}
+                      />
+                    }
+                    label="Desconsiderar mes atual?"
+                  />
+                  {fromNextMonth && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", ml: 4, mt: -0.5 }}>
+                      A reserva passa a valer a partir de {formatMonthLong(nextMonth)}.
+                    </Typography>
+                  )}
+                </Box>
                 <Divider />
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-                  {dirty && (
-                    <Button color="inherit" onClick={() => setDraft(data.amount)} disabled={mutation.isPending}>
+                  {(dirty || fromNextMonth) && (
+                    <Button
+                      color="inherit"
+                      onClick={() => { setDraft(data.amount); setFromNextMonth(false); }}
+                      disabled={mutation.isPending}
+                    >
                       Cancelar
                     </Button>
                   )}
                   <Button
                     variant="contained"
                     onClick={() => mutation.mutate()}
-                    disabled={!dirty || mutation.isPending}
+                    disabled={!canSave || mutation.isPending}
                   >
                     {mutation.isPending ? "Salvando..." : "Salvar"}
                   </Button>
